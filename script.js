@@ -2,6 +2,7 @@ class BlogApp {
     constructor() {
         this.users = this.loadUsers();
         this.currentUser = this.loadCurrentUser();
+        this.posts = this.loadPosts();
         this.init();
     }
 
@@ -15,6 +16,7 @@ class BlogApp {
         // Method chaining for event listeners
         document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
         document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
+        document.getElementById('createPostForm').addEventListener('submit', (e) => this.handleCreatePost(e));
         return this;
     }
 
@@ -29,11 +31,11 @@ class BlogApp {
         // Update active tab
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
         document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
+        
         // Show/hide forms
         document.querySelectorAll('.auth-form').forEach(form => form.style.display = 'none');
         document.getElementById(`${tabName}Form`).style.display = 'block';
-
+        
         // Clear messages
         this.hideMessage();
         return this;
@@ -50,7 +52,7 @@ class BlogApp {
         }
 
         const user = this.users.find(u => u.username === username && u.password === password);
-        
+                
         if (user) {
             this.loginUser(user)
                 .showMessage('Login successful! Redirecting...', 'success')
@@ -58,7 +60,7 @@ class BlogApp {
         } else {
             this.showMessage('Invalid username or password', 'error');
         }
-        
+                
         return this;
     }
 
@@ -93,6 +95,37 @@ class BlogApp {
         return this;
     }
 
+    handleCreatePost(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const title = formData.get('title').trim();
+        const content = formData.get('content').trim();
+        const image = formData.get('image').trim();
+
+        if (!title || !content) {
+            return this.showMessage('Please fill in title and content', 'error');
+        }
+
+        const newPost = {
+            id: Date.now(),
+            title,
+            content,
+            image: image || null,
+            author: this.currentUser.username,
+            createdAt: new Date().toISOString()
+        };
+
+        this.posts.unshift(newPost); // Add to beginning of array
+        this.savePosts()
+            .renderPosts()
+            .showMessage('Blog post created successfully!', 'success');
+
+        e.target.reset();
+        document.getElementById('postAuthor').value = this.currentUser.username;
+        
+        return this;
+    }
+
     loginUser(user) {
         this.currentUser = user;
         this.saveCurrentUser();
@@ -109,7 +142,7 @@ class BlogApp {
         messageEl.className = `message ${type}`;
         messageEl.style.display = 'block';
         messageEl.classList.add('slide-in');
-        
+                
         if (type === 'success') {
             setTimeout(() => this.hideMessage(), 3000);
         }
@@ -138,12 +171,68 @@ class BlogApp {
 
         document.getElementById('dashboardUsername').textContent = this.currentUser.username;
         document.getElementById('dashboardUserId').textContent = this.currentUser.id;
-        
+                
         const roleEl = document.getElementById('dashboardRole');
         roleEl.textContent = this.currentUser.role;
         roleEl.className = `role-badge ${this.currentUser.role}`;
-        
+
+        // Show create post section only for authors
+        const createPostSection = document.getElementById('createPostSection');
+        if (this.currentUser.role === 'author') {
+            createPostSection.style.display = 'block';
+            document.getElementById('postAuthor').value = this.currentUser.username;
+        } else {
+            createPostSection.style.display = 'none';
+        }
+
+        this.renderPosts();
         return this;
+    }
+
+    renderPosts() {
+        const postsContainer = document.getElementById('postsContainer');
+        
+        if (this.posts.length === 0) {
+            postsContainer.innerHTML = `
+                <div class="no-posts">
+                    <p>No blog posts yet. ${this.currentUser.role === 'author' ? 'Create your first post!' : 'Check back later for new posts!'}</p>
+                </div>
+            `;
+            return this;
+        }
+
+        postsContainer.innerHTML = this.posts.map(post => `
+            <div class="post-card fade-in">
+                <div class="post-header">
+                    <h4 class="post-title">${this.escapeHtml(post.title)}</h4>
+                    <div class="post-meta">
+                        <div class="post-author">By ${this.escapeHtml(post.author)}</div>
+                        <div>${this.formatDate(post.createdAt)}</div>
+                    </div>
+                </div>
+                ${post.image ? `<img src="${post.image}" alt="${this.escapeHtml(post.title)}" class="post-image" onerror="this.style.display='none'">` : ''}
+                <div class="post-content">${this.escapeHtml(post.content)}</div>
+            </div>
+        `).join('');
+
+        return this;
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     checkAuthStatus() {
@@ -168,6 +257,15 @@ class BlogApp {
 
     saveCurrentUser() {
         localStorage.setItem('loggedInUser', JSON.stringify(this.currentUser));
+        return this;
+    }
+
+    loadPosts() {
+        return JSON.parse(localStorage.getItem('posts') || '[]');
+    }
+
+    savePosts() {
+        localStorage.setItem('posts', JSON.stringify(this.posts));
         return this;
     }
 

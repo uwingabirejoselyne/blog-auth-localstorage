@@ -12,21 +12,17 @@
         <div class="shape"></div>
         <div class="shape"></div>
     </div>
-
     <div class="container">
         <div id="authContainer" class="fade-in">
             <div class="logo">
                 <h1>BlogSpace</h1>
                 <p>Your creative writing platform</p>
             </div>
-
             <div class="form-tabs">
                 <button class="tab active" data-tab="login">Login</button>
                 <button class="tab" data-tab="register">Register</button>
             </div>
-
             <div id="message" class="message"></div>
-
             <form id="loginForm" class="auth-form">
                 <div class="form-group">
                     <label for="loginUsername">Username</label>
@@ -38,7 +34,6 @@
                 </div>
                 <button type="submit" class="btn">Sign In</button>
             </form>
-
             <form id="registerForm" class="auth-form" style="display: none;">
                 <div class="form-group">
                     <label for="registerUsername">Username</label>
@@ -59,19 +54,60 @@
                 <button type="submit" class="btn">Create Account</button>
             </form>
         </div>
-
         <div id="dashboard" class="dashboard">
-            <h2>Welcome to Your Dashboard</h2>
-            <div class="user-info">
-                <h3>User Information</h3>
-                <p><strong>Username:</strong> <span id="dashboardUsername"></span></p>
-                <p><strong>Role:</strong> <span id="dashboardRole" class="role-badge"></span></p>
-                <p><strong>User ID:</strong> <span id="dashboardUserId"></span></p>
+            <div class="dashboard-header">
+                <h2>Welcome to Your Dashboard</h2>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            
+            <div class="dashboard-content">
+                <div class="user-info-card">
+                    <h3>User Information</h3>
+                    <div class="user-details">
+                        <p><strong>Username:</strong> <span id="dashboardUsername"></span></p>
+                        <p><strong>Role:</strong> <span id="dashboardRole" class="role-badge"></span></p>
+                        <p><strong>User ID:</strong> <span id="dashboardUserId"></span></p>
+                    </div>
+                </div>
+
+                <div id="createPostSection" class="create-post-section" style="display: none;">
+                    <div class="section-header">
+                        <h3>Create New Blog Post</h3>
+                    </div>
+                    <form id="createPostForm" class="post-form">
+                        <div class="form-group">
+                            <label for="postTitle">Title</label>
+                            <input type="text" id="postTitle" name="title" required placeholder="Enter your blog post title">
+                        </div>
+                        <div class="form-group">
+                            <label for="postContent">Content</label>
+                            <textarea id="postContent" name="content" required placeholder="Write your blog post content here..." rows="6"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="postImage">Image URL</label>
+                            <input type="url" id="postImage" name="image" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <div class="form-group">
+                            <label for="postAuthor">Author</label>
+                            <input type="text" id="postAuthor" name="author" readonly>
+                        </div>
+                        <button type="submit" class="btn create-post-btn">Create Post</button>
+                    </form>
+                </div>
+
+                <div class="posts-section">
+                    <div class="section-header">
+                        <h3>Recent Blog Posts</h3>
+                    </div>
+                    <div id="postsContainer" class="posts-container">
+                        <div class="no-posts">
+                            <p>No blog posts yet. Create your first post!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
