@@ -474,3 +474,29 @@ grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
         font-size: 2rem;
     }
 }
+
+
+.post-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.post-actions .btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+.post-actions .edit-post-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.post-actions .delete-post-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.post-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}

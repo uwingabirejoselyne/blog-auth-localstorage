@@ -101,27 +101,54 @@ class BlogApp {
         const title = formData.get('title').trim();
         const content = formData.get('content').trim();
         const image = formData.get('image').trim();
+        const postId = document.getElementById('createPostForm').dataset.editingPostId;
 
         if (!title || !content) {
             return this.showMessage('Please fill in title and content', 'error');
         }
 
-        const newPost = {
-            id: Date.now(),
-            title,
-            content,
-            image: image || null,
-            author: this.currentUser.username,
-            createdAt: new Date().toISOString()
-        };
+        if (postId) {
+            // Editing existing post
+            const postIndex = this.posts.findIndex(p => p.id === parseInt(postId));
+            if (postIndex !== -1) {
+                this.posts[postIndex] = {
+                    ...this.posts[postIndex],
+                    title,
+                    content,
+                    image: image || null,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                this.savePosts()
+                    .renderPosts()
+                    .showMessage('Blog post updated successfully!', 'success');
+                
+                // Reset form
+                document.getElementById('createPostForm').reset();
+                delete document.getElementById('createPostForm').dataset.editingPostId;
+                document.getElementById('postAuthor').value = this.currentUser.username;
+                document.querySelector('.create-post-btn').textContent = 'Create Post';
+            }
+        } else {
+            // Creating new post
+            const newPost = {
+                id: Date.now(),
+                title,
+                content,
+                image: image || null,
+                author: this.currentUser.username,
+                createdAt: new Date().toISOString(),
+                updatedAt: null
+            };
 
-        this.posts.unshift(newPost); // Add to beginning of array
-        this.savePosts()
-            .renderPosts()
-            .showMessage('Blog post created successfully!', 'success');
+            this.posts.unshift(newPost); // Add to beginning of array
+            this.savePosts()
+                .renderPosts()
+                .showMessage('Blog post created successfully!', 'success');
 
-        e.target.reset();
-        document.getElementById('postAuthor').value = this.currentUser.username;
+            e.target.reset();
+            document.getElementById('postAuthor').value = this.currentUser.username;
+        }
         
         return this;
     }
@@ -202,19 +229,79 @@ class BlogApp {
         }
 
         postsContainer.innerHTML = this.posts.map(post => `
-            <div class="post-card fade-in">
+            <div class="post-card fade-in" data-post-id="${post.id}">
                 <div class="post-header">
                     <h4 class="post-title">${this.escapeHtml(post.title)}</h4>
                     <div class="post-meta">
                         <div class="post-author">By ${this.escapeHtml(post.author)}</div>
-                        <div>${this.formatDate(post.createdAt)}</div>
+                        <div>${this.formatDate(post.createdAt)}${post.updatedAt ? ` (updated ${this.formatDate(post.updatedAt)})` : ''}</div>
                     </div>
                 </div>
                 ${post.image ? `<img src="${post.image}" alt="${this.escapeHtml(post.title)}" class="post-image" onerror="this.style.display='none'">` : ''}
                 <div class="post-content">${this.escapeHtml(post.content)}</div>
+                ${this.currentUser && this.currentUser.username === post.author ? `
+                    <div class="post-actions">
+                        <button class="btn edit-post-btn" data-post-id="${post.id}">Edit</button>
+                        <button class="btn delete-post-btn" data-post-id="${post.id}">Delete</button>
+                    </div>
+                ` : ''}
             </div>
         `).join('');
 
+        // Add event listeners to edit and delete buttons
+        document.querySelectorAll('.edit-post-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleEditPost(e));
+        });
+
+        document.querySelectorAll('.delete-post-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleDeletePost(e));
+        });
+
+        return this;
+    }
+
+    handleEditPost(e) {
+        const postId = parseInt(e.target.dataset.postId);
+        const post = this.posts.find(p => p.id === postId);
+        
+        if (post) {
+            // Fill the form with post data
+            document.getElementById('postTitle').value = post.title;
+            document.getElementById('postContent').value = post.content;
+            document.getElementById('postImage').value = post.image || '';
+            document.getElementById('postAuthor').value = post.author;
+            
+            // Change button text and store post ID
+            document.querySelector('.create-post-btn').textContent = 'Update Post';
+            document.getElementById('createPostForm').dataset.editingPostId = postId;
+            
+            // Scroll to form
+            document.getElementById('createPostSection').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        return this;
+    }
+
+    handleDeletePost(e) {
+        if (confirm('Are you sure you want to delete this post?')) {
+            const postId = parseInt(e.target.dataset.postId);
+            const postIndex = this.posts.findIndex(p => p.id === postId);
+            
+            if (postIndex !== -1) {
+                this.posts.splice(postIndex, 1);
+                this.savePosts()
+                    .renderPosts()
+                    .showMessage('Post deleted successfully!', 'success');
+                
+                // If we were editing this post, reset the form
+                const editingPostId = document.getElementById('createPostForm').dataset.editingPostId;
+                if (editingPostId && parseInt(editingPostId) === postId) {
+                    document.getElementById('createPostForm').reset();
+                    delete document.getElementById('createPostForm').dataset.editingPostId;
+                    document.querySelector('.create-post-btn').textContent = 'Create Post';
+                }
+            }
+        }
         return this;
     }
 
