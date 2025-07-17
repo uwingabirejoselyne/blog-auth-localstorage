@@ -7,7 +7,7 @@ class BlogApp {
   }
 
   init () {
-    this.setupEventListeners().setupTabs().checkAuthStatus()
+    this.setupEventListeners().setupTabs().checkAuthStatus().setupSearch()
   }
 
   setupEventListeners () {
@@ -29,6 +29,19 @@ class BlogApp {
     })
     return this
   }
+
+  setupSearch() {
+  const searchInput = document.getElementById('searchInput')
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      this.renderPosts(e.target.value.trim().toLowerCase())
+    })
+  }
+  return this
+}
+
+
+
 
   switchTab (tabName) {
     document
@@ -230,10 +243,18 @@ class BlogApp {
     return this
   }
 
-  renderPosts () {
+  renderPosts (searchQuery = "") {
     const postsContainer = document.getElementById('postsContainer')
+  let filteredPosts = this.posts
 
-    if (this.posts.length === 0) {
+   if (searchQuery) {
+    filteredPosts = filteredPosts.filter(post =>
+      post.title.toLowerCase().includes(searchQuery) ||
+      post.content.toLowerCase().includes(searchQuery) ||
+      post.author.toLowerCase().includes(searchQuery)
+    )
+  }
+    if (filteredPosts.length === 0) {
       postsContainer.innerHTML = `
                 <div class="no-posts">
                     <p>No blog posts yet. ${this.currentUser.role === 'author'
@@ -244,7 +265,7 @@ class BlogApp {
       return this
     }
 
-    postsContainer.innerHTML = this.posts
+    postsContainer.innerHTML = filteredPosts
       .map(
         post => `
             <div class="post-card fade-in" data-post-id="${post.id}">
@@ -465,5 +486,8 @@ function logout () {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    
   window.app = new BlogApp()
 })
+
+
