@@ -50,6 +50,17 @@ body {
     animation-delay: 2s;
 }
 
+#searchInput{width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 2px solid #ccc;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+width: 150px;
+height: 30px;
+
+}
 .shape:nth-child(3) {
     width: 60px;
     height: 60px;
@@ -172,6 +183,10 @@ body {
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
+.customheader{
+    display: flex;
+    justify-content: space-between;
+}
 
 .btn {
     width: 100%;
@@ -271,6 +286,11 @@ body {
 .user-details p {
     color: #6b7280;
     font-size: 0.95rem;
+}
+.user-list{
+    display: flex;
+    justify-content: space-between;
+
 }
 
 .role-badge {
@@ -401,6 +421,7 @@ grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     color: #4b5563;
     line-height: 1.6;
     margin-bottom: 15px;
+    
 }
 
 .post-image {
